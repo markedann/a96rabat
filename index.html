@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VIP Gewinnspiel - autodetails96</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold-primary: #fbbf24;
+            --gold-dark: #b45309;
+            --gold-gradient: linear-gradient(135deg, #fcd34d 0%, #d97706 50%, #b45309 100%);
+        }
+
+        body {
+            background-color: #020617;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(251, 191, 36, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 100% 100%, rgba(15, 23, 42, 1) 0%, transparent 50%);
+            font-family: 'Inter', sans-serif;
+            color: #f8fafc;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.9);
+        }
+
+        .btn-gold {
+            background: var(--gold-gradient);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+        
+        .btn-gold:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(217, 119, 6, 0.6);
+            filter: brightness(1.1);
+        }
+
+        .btn-gold:active:not(:disabled) {
+            transform: translateY(1px);
+        }
+
+        .btn-gold:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            filter: grayscale(0.8);
+        }
+        
+        .btn-gold::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+            transform: skewX(-20deg);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0% { left: -100%; }
+            20% { left: 200%; }
+            100% { left: 200%; }
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 320px;
+            height: 320px;
+            margin: 0 auto;
+            border-radius: 50%;
+            box-shadow: 
+                0 0 0 8px #0f172a, 
+                0 0 0 12px #fbbf24,
+                0 0 50px rgba(251, 191, 36, 0.3); 
+            background: #0f172a;
+        }
+
+        #wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            transition: transform 6s cubic-bezier(0.15, 0, 0.10, 1);
+            overflow: hidden;
+        }
+
+        .wheel-center {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px; height: 60px;
+            background: radial-gradient(circle at 30% 30%, #334155, #0f172a);
+            border: 3px solid #fbbf24;
+            border-radius: 50%;
+            z-index: 20;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .wheel-center-logo {
+            font-size: 0.6rem;
+            font-weight: 900;
+            color: #fbbf24;
+            letter-spacing: 0.5px;
+        }
+
+        .stopper-container {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 30;
+            filter: drop-shadow(0 4px 4px rgba(0,0,0,0.5));
+        }
+
+        .stopper {
+            width: 36px;
+            height: 44px;
+            background: linear-gradient(to bottom, #fbbf24, #d97706);
+            clip-path: polygon(50% 100%, 0 0, 100% 0);
+            transform-origin: top center;
+        }
+
+        .tick-anim { animation: tick 0.15s ease-out; }
+        @keyframes tick { 
+            0% { transform: rotate(0deg); } 
+            40% { transform: rotate(-25deg); } 
+            100% { transform: rotate(0deg); } 
+        }
+
+        /* Modal animations */
+        .modal-bg { animation: fadeIn 0.4s ease-out forwards; }
+        .modal-content { animation: scaleUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes scaleUp { from { opacity: 0; transform: scale(0.9) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+        @media (max-width: 380px) {
+            .wheel-container { width: 280px; height: 280px; }
+            h1 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="glass-panel rounded-3xl p-1 w-full max-w-[480px] relative">
+        <div class="relative bg-slate-900/40 rounded-[22px] p-6 md:p-8 flex flex-col items-center border border-white/5">
+            
+            <!-- Header -->
+            <div class="flex flex-col items-center mb-6 w-full text-center">
+                <div class="h-20 w-auto mb-4 flex items-center justify-center filter drop-shadow-xl hover:scale-105 transition-transform duration-300">
+                    <img src="https://www.dropbox.com/scl/fi/rci57ohupbfz8nktotrff/autodetails96.png?rlkey=myk6hp9st9f8pjb1th1xsuhuj&st=qri65fou&raw=1" 
+                         alt="AutoDetails96 Logo" 
+                         class="h-full object-contain"
+                         onerror="this.style.display='none'; document.getElementById('fallback-title').style.display='block';">
+                </div>
+                
+                <h1 id="fallback-title" class="text-3xl font-black text-white hidden mb-2">AUTODETAILS<span class="text-amber-500">96</span></h1>
+                
+                <div class="inline-block bg-amber-500/10 border border-amber-500/20 rounded-full px-3 py-1 mb-2">
+                    <p class="text-amber-400 text-[10px] font-bold tracking-[0.2em] uppercase">OFFIZIELLES GEWINNSPIEL</p>
+                </div>
+                <p class="text-slate-300 text-sm font-medium leading-relaxed">Dreh das Rad und sichere dir deinen<br>exklusiven eBay-Rabatt!</p>
+            </div>
+
+            <!-- Wheel -->
+            <div class="wheel-container mb-8">
+                <div class="stopper-container">
+                    <div id="stopper" class="stopper"></div>
+                </div>
+
+                <div id="wheel">
+                    <!-- Segments generated via JS -->
+                </div>
+
+                <div class="wheel-center">
+                    <div class="wheel-center-logo">AD96</div>
+                </div>
+            </div>
+
+            <!-- Action Area -->
+            <button id="spinBtn" onclick="spinWheel()" class="btn-gold w-full py-4 rounded-xl text-white font-black text-xl uppercase shadow-2xl tracking-wider mb-6">
+                JETZT DREHEN
+            </button>
+            
+            <!-- Rules / Footer -->
+            <div class="text-[10px] text-slate-500 text-center leading-relaxed border-t border-white/5 pt-4 w-full">
+                <p class="mb-2 font-bold text-slate-400">Teilnahmebedingungen:</p>
+                <p>1. Teilnahme kostenlos & unverbindlich.</p>
+                <p>2. Rabatt nur einmal pro eBay-Konto anwendbar.</p>
+                <p>3. Der Rechtsweg ist ausgeschlossen.</p>
+                
+                <div class="mt-4 pt-2 border-t border-white/5 flex flex-col gap-1 opacity-60 hover:opacity-100 transition-opacity">
+                    <button onclick="openLegal()" class="underline hover:text-amber-500 transition-colors">Impressum & Datenschutz</button>
+                    <p class="text-[9px]">autodetails96 является частным продавцом на eBay</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Modal -->
+    <div id="resultOverlay" class="fixed inset-0 z-50 bg-[#020617]/90 backdrop-blur-md hidden flex items-center justify-center p-4 modal-bg">
+        <div class="glass-panel p-8 rounded-[2rem] max-w-sm w-full text-center modal-content border border-amber-500/20 shadow-[0_0_60px_rgba(251,191,36,0.15)] relative overflow-hidden">
+            
+            <!-- WIN STATE -->
+            <div id="winContent" class="hidden relative z-10">
+                <div class="text-6xl mb-4 animate-bounce">🎉</div>
+                <h2 class="text-3xl font-black text-white mb-2 uppercase italic tracking-wide">Glückwunsch!</h2>
+                
+                <div class="py-5 border-y border-dashed border-white/10 my-6 bg-gradient-to-r from-transparent via-amber-500/10 to-transparent">
+                    <span class="text-6xl font-black text-amber-400 drop-shadow-[0_2px_10px_rgba(251,191,36,0.5)]" id="discountDisplay">0%</span>
+                    <span class="block text-sm text-amber-200/70 font-bold uppercase tracking-widest mt-1">Rabatt</span>
+                </div>
+
+                <!-- Instructions -->
+                <div class="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4 mb-6">
+                    <p class="text-[11px] text-slate-300 leading-snug">
+                        <span class="text-amber-500 font-bold">SO FUNKTIONIERT ES:</span><br>
+                        Schreibe mir den Code, den du bekommen hast, und ich passe den Preis für dich an.
+                    </p>
+                </div>
+
+                <div class="bg-[#0f172a] rounded-xl p-4 mb-6 border border-amber-500/30 shadow-inner">
+                    <p class="text-[10px] text-amber-500 font-bold uppercase mb-2 tracking-wider">Dein Gewinn-Code</p>
+                    <div class="flex items-center justify-between gap-3 bg-black/30 p-2 rounded-lg border border-white/5">
+                        <code id="code" class="text-xl font-mono font-bold text-white tracking-widest truncate">---</code>
+                        <button onclick="copyCode()" class="bg-amber-600 hover:bg-amber-500 active:scale-95 text-white p-2 rounded-md transition-all shadow-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Call to Action -->
+                <a href="https://www.ebay.de/usr/autodetails96" target="_blank" class="btn-gold block w-full py-3 rounded-xl text-white font-black text-sm uppercase tracking-wider mb-4 no-underline">
+                    JETZT KONTAKTIEREN
+                </a>
+
+                <button onclick="closeModal()" class="text-slate-500 text-[10px] hover:text-white transition-colors underline decoration-slate-700 underline-offset-4">Fenster schließen</button>
+            </div>
+            
+            <!-- LOSE STATE -->
+            <div id="loseContent" class="hidden relative z-10">
+                <div class="text-6xl mb-4 grayscale opacity-60">😔</div>
+                <h2 class="text-2xl font-bold text-white mb-2">Knapp daneben!</h2>
+                <p class="text-slate-400 mb-8 text-sm leading-relaxed">
+                    Leider kein Hauptgewinn diesmal.<br>Aber schau doch mal bei unseren<br><span class="text-amber-500 font-bold">Angeboten</span> vorbei!
+                </p>
+                <a href="https://www.ebay.de/usr/autodetails96" target="_blank" class="block w-full bg-amber-500/10 border border-amber-500/30 py-3 rounded-xl text-amber-500 font-bold transition-all uppercase text-sm tracking-wide mb-3 no-underline">
+                    Shop besuchen
+                </a>
+                <button onclick="closeModal()" class="w-full bg-white/5 hover:bg-white/10 py-2 rounded-xl text-slate-500 font-bold uppercase text-[10px]">
+                    Schließen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Legal Overlay (Impressum & Datenschutz) -->
+    <div id="legalOverlay" class="fixed inset-0 z-[60] bg-[#020617]/95 backdrop-blur-md hidden flex items-center justify-center p-4 modal-bg">
+        <div class="glass-panel p-6 md:p-8 rounded-[2rem] max-w-md w-full text-left modal-content border border-white/10 relative overflow-y-auto max-h-[85vh]">
+            <button onclick="closeLegal()" class="absolute top-4 right-4 bg-white/5 hover:bg-white/10 p-2 rounded-full text-slate-400 hover:text-white transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            
+            <h2 class="text-2xl font-black text-white mb-6 pr-10">Rechtliche Hinweise</h2>
+            
+            <div class="space-y-6 text-xs text-slate-300 leading-relaxed font-medium">
+                <div class="bg-white/5 rounded-xl p-4 border border-white/5">
+                    <h3 class="text-amber-500 font-bold uppercase mb-2 tracking-wider flex items-center gap-2">Impressum</h3>
+                    <p class="text-white font-bold mb-1">Betreiber der Seite:</p>
+                    <p class="mb-1">autodetails96</p>
+                    <p class="text-slate-400 mb-2">(Privatverkäufer auf eBay)</p>
+                    <p class="pt-2 border-t border-white/10 mt-2">
+                        <span class="text-slate-400">Kontakt:</span><br>
+                        Bitte nutzen Sie ausschließlich das <a href="https://www.ebay.de/usr/autodetails96" target="_blank" class="text-amber-400 hover:underline">eBay-Nachrichtensystem</a>.
+                    </p>
+                </div>
+
+                <div>
+                    <h3 class="text-amber-500 font-bold uppercase mb-2 tracking-wider flex items-center gap-2">Datenschutz</h3>
+                    <p class="mb-3">Diese Webseite dient ausschließlich unterhaltenden Zwecken. Wir nehmen den Schutz Ihrer Daten ernst:</p>
+                    <ul class="space-y-3">
+                        <li class="flex gap-2">
+                            <span class="text-amber-500 font-bold">•</span>
+                            <span><strong>Keine Datenspeicherung:</strong> Wir speichern keine personenbezogenen Daten auf unseren Servern.</span>
+                        </li>
+                        <li class="flex gap-2">
+                            <span class="text-amber-500 font-bold">•</span>
+                            <span><strong>eBay Datenhoheit:</strong> Die Einlösung der Rabatte und alle Transaktionen finden ausschließlich auf <strong class="text-white">eBay.de</strong> statt.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <button onclick="closeLegal()" class="mt-8 w-full bg-slate-800 hover:bg-slate-700 py-3 rounded-xl text-white font-bold transition-all border border-white/10">
+                Verstanden
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-emerald-600 text-white px-6 py-3 rounded-full shadow-[0_10px_40px_-10px_rgba(16,185,129,0.5)] transform transition-all duration-300 translate-y-24 opacity-0 flex items-center gap-3 z-[70] border border-emerald-400/30">
+        <span class="font-bold text-sm tracking-wide">Code kopiert!</span>
+    </div>
+
+    <script>
+        const CODES = {
+            10: "AD96-PROMO-10",
+            5:  "AD96-PROMO-05",
+            2:  "AD96-PROMO-02"
+        };
+
+        const segments = [
+            { text: "10%", value: 10, bg: "#1e293b", textCol: "#fbbf24" },
+            { text: "5%",  value: 5,  bg: "#334155", textCol: "#ffffff" },
+            { text: "2%",  value: 2,  bg: "#1e293b", textCol: "#ffffff" },
+            { text: "0%",  value: 0,  bg: "#0f172a", textCol: "#64748b" },
+            { text: "10%", value: 10, bg: "#1e293b", textCol: "#fbbf24" },
+            { text: "5%",  value: 5,  bg: "#334155", textCol: "#ffffff" },
+            { text: "2%",  value: 2,  bg: "#1e293b", textCol: "#ffffff" },
+            { text: "0%",  value: 0,  bg: "#0f172a", textCol: "#64748b" }
+        ];
+
+        const weights = [1, 5, 30, 60, 1, 5, 30, 60]; 
+        const wheel = document.getElementById('wheel');
+        const stopper = document.getElementById('stopper');
+        const STORAGE_KEY = 'autodetails96_spin_session';
+
+        function init() {
+            const angleStep = 360 / segments.length; 
+            let gradientParts = segments.map((s, i) => `${s.bg} ${i * angleStep}deg ${(i+1) * angleStep}deg`).join(', ');
+            wheel.style.background = `conic-gradient(${gradientParts})`;
+
+            segments.forEach((s, i) => {
+                const line = document.createElement('div');
+                Object.assign(line.style, {
+                    position: 'absolute', top: '0', bottom: '50%', left: '50%', width: '1px',
+                    background: 'rgba(255,255,255,0.05)', transformOrigin: 'bottom center',
+                    transform: `translateX(-50%) rotate(${i * angleStep}deg)`
+                });
+                wheel.appendChild(line);
+
+                const label = document.createElement('div');
+                Object.assign(label.style, {
+                    position: 'absolute', top: '50%', left: '50%', transformOrigin: 'center', zIndex: '10'
+                });
+                
+                const midAngle = (i * angleStep) + (angleStep / 2);
+                const rad = (midAngle - 90) * (Math.PI / 180);
+                const x = 90 * Math.cos(rad);
+                const y = 90 * Math.sin(rad);
+
+                label.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) rotate(${midAngle}deg)`;
+                label.innerHTML = `<span style="font-weight:900; font-size:1.4rem; color:${s.textCol};">${s.value === 0 ? '❌' : s.text}</span>`;
+                wheel.appendChild(label);
+            });
+
+            if (localStorage.getItem(STORAGE_KEY)) {
+                disableButton("BEENDET");
+            }
+        }
+
+        function spinWheel() {
+            if (localStorage.getItem(STORAGE_KEY)) return;
+            
+            const btn = document.getElementById('spinBtn');
+            btn.disabled = true;
+            btn.innerText = "DREHT...";
+
+            const totalWeight = weights.reduce((a, b) => a + b, 0);
+            let random = Math.random() * totalWeight;
+            let winIdx = 0;
+            for (let i = 0; i < weights.length; i++) {
+                if (random < weights[i]) { winIdx = i; break; }
+                random -= weights[i];
+            }
+
+            const segmentAngle = 360 / segments.length;
+            const sectorCenter = (winIdx * segmentAngle) + (segmentAngle / 2);
+            const extraSpins = 6 * 360; 
+            const finalRotate = extraSpins + (360 - sectorCenter);
+
+            wheel.style.transform = `rotate(${finalRotate}deg)`;
+            localStorage.setItem(STORAGE_KEY, 'true');
+
+            setTimeout(() => {
+                showResult(segments[winIdx]);
+                btn.innerText = "SPIEL BEENDET";
+            }, 6000);
+        }
+
+        function showResult(winner) {
+            document.getElementById('resultOverlay').classList.remove('hidden');
+            if (winner.value > 0) {
+                document.getElementById('winContent').classList.remove('hidden');
+                document.getElementById('discountDisplay').innerText = winner.text;
+                document.getElementById('code').innerText = CODES[winner.value] || "AD96-WIN";
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#fbbf24', '#ffffff'] });
+            } else {
+                document.getElementById('loseContent').classList.remove('hidden');
+            }
+        }
+
+        function copyCode() {
+            const codeText = document.getElementById('code').innerText;
+            navigator.clipboard.writeText(codeText).then(showToast);
+        }
+
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            setTimeout(() => { toast.classList.add('translate-y-24', 'opacity-0'); }, 3000);
+        }
+
+        function closeModal() { document.getElementById('resultOverlay').classList.add('hidden'); }
+        function openLegal() { document.getElementById('legalOverlay').classList.remove('hidden'); }
+        function closeLegal() { document.getElementById('legalOverlay').classList.add('hidden'); }
+        function disableButton(text) {
+            const btn = document.getElementById('spinBtn');
+            btn.disabled = true;
+            btn.innerText = text;
+            btn.classList.add('opacity-50');
+        }
+
+        init();
+    </script>
+</body>
+</html>
